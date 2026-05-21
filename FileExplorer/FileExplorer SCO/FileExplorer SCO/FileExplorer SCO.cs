@@ -4,11 +4,12 @@ namespace FileExplorer
     using System.Collections.Generic;
     using System.IO;
     using Skyline.DataMiner.Analytics.GenericInterface;
+    using Skyline.DataMiner.Utils.SecureCoding.SecureIO;
 
-    /// <summary>
-    /// Represents a data source.
-    /// See: https://aka.dataminer.services/gqi-external-data-source for a complete example.
-    /// </summary>
+	/// <summary>
+	/// Represents a data source.
+	/// See: https://aka.dataminer.services/gqi-external-data-source for a complete example.
+	/// </summary>
     [GQIMetaData(Name = "FileExplorer SCO")]
     public sealed class FileExplorer : IGQIDataSource
         , IGQIInputArguments
@@ -91,19 +92,21 @@ namespace FileExplorer
         public GQIPage GetNextPage(GetNextPageInputArgs args)
         {
             var rows = new List<GQIRow>();
+            var securePath = _recursive ? SecurePath.ConstructSecurePathWithSubDirectories(_path,string.Empty) : SecurePath.ConstructSecurePath(_path);
 
             try
             {
                 var option = _recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-                foreach (var filePath in Directory.GetFiles(_path, _pattern, option))
+                foreach (var filePath in Directory.GetFiles(securePath, _pattern, option))
                 {
                     var info = new FileInfo(filePath);
                     rows.Add(CreateRow(info));
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+				throw new Exception($"Failed to retrieve files: {ex.Message}");
             }
 
             return new GQIPage(rows.ToArray())

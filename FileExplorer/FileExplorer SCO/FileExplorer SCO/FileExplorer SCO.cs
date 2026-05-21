@@ -153,6 +153,16 @@ namespace FileExplorer
                     if (info.Exists)
                     _updater.UpdateRow(CreateRow(info));
                     break;
+                case WatcherChangeTypes.Renamed:
+                    var renamedArgs = e as RenamedEventArgs;
+                    if(renamedArgs != null)
+					{
+						_updater.RemoveRow(renamedArgs.OldFullPath);
+						if (info.Exists)
+							_updater.AddRow(CreateRow(info));
+					}
+
+                    break;
             }
         }
 
